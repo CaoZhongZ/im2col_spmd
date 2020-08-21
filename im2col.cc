@@ -3,9 +3,15 @@
 
 #include "im2col.h"
 
-extern "C" void copy_from_2d_array_simd(float *dst, int d_height, int d_width,
-                                        const float *src, int s_height,
-                                        int s_width, int h_off, int w_off);
+extern "C" {
+void copy_from_2d_array_simd(float *dst, int d_height, int d_width,
+                             const float *src, int s_height, int s_width,
+                             int h_off, int w_off);
+extern void copy_from_2d_array_simd_8(float *dst, int d_height, int d_width,
+
+                                      const float *src, int s_height,
+                                      int s_width, int h_off, int w_off);
+}
 
 void copy_from_2d_array(float *dst, int d_height, int d_width, const float *src,
                         int s_height, int s_width, int h_off, int w_off) {
@@ -51,8 +57,8 @@ void im2col(const float *im, float *col, int h, int w, int c, int kh, int kw,
 }
 
 // simple single batch im2col interface
-void im2col_simd(const float *im, float *col, int h, int w, int c, int kh, int kw,
-            int hp, int wp) {
+void im2col_simd(const float *im, float *col, int h, int w, int c, int kh,
+                 int kw, int hp, int wp) {
 
   auto oh = h + 2 * hp - kh + 1;
   auto ow = w + 2 * wp - kw + 1;
@@ -69,6 +75,30 @@ void im2col_simd(const float *im, float *col, int h, int w, int c, int kh, int k
         auto w_off = 0 - wp + k0;
 
         copy_from_2d_array_simd(col_c, oh, ow, im_c, h, w, h_off, w_off);
+      }
+    }
+  }
+}
+
+// simple single batch im2col interface
+void im2col_simd_unroll(const float *im, float *col, int h, int w, int c,
+                        int kh, int kw, int hp, int wp) {
+
+  auto oh = h + 2 * hp - kh + 1;
+  auto ow = w + 2 * wp - kw + 1;
+
+  // for every image
+  for (int ic = 0; ic < c / 8; ++ic) {
+    auto *im_c = im + ic * (h * w);
+
+    for (int k1 = 0; k1 < kh; ++k1) {
+      for (int k0 = 0; k0 < kw; ++k0) {
+        // Copy h x w with offset according to k1/k0
+        auto *col_c = col + (k0 + k1 * kw + ic * kw * kh) * (oh * ow);
+        auto h_off = 0 - hp + k1;
+        auto w_off = 0 - wp + k0;
+
+        copy_from_2d_array_simd_8(col_c, oh, ow, im_c, h, w, h_off, w_off);
       }
     }
   }

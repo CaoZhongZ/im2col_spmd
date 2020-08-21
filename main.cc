@@ -83,7 +83,17 @@ void bench_im2col(const params<float> *shape, int times) {
   auto duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(Time::now() - start)
           .count();
-  std::cout << "SPMD execution time:" << (double)duration/times << "ms" << std::endl;
+  std::cout << "SPMD execution time:" << duration << "ms";
+
+  start = Time::now();
+  for (int i = 0; i < times; ++i) {
+    im2col_simd_unroll(t_in, t_cmp, shape->h, shape->w, shape->c, 3, 3, shape->hp,
+           shape->wp);
+  }
+  duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(Time::now() - start)
+          .count();
+  std::cout << " vs. " << duration << "ms";
 
   start = Time::now();
   for (int i = 0; i < times; ++i) {
@@ -93,7 +103,7 @@ void bench_im2col(const params<float> *shape, int times) {
   duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(Time::now() - start)
           .count();
-  std::cout << "Normal execution time:" << (double)duration/times << "ms" << std::endl;
+  std::cout << " vs. " << duration << "ms" << std::endl;
 
   free(t_in);
   free(t_out);
