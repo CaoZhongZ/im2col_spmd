@@ -1,2 +1,2 @@
-# im2col_spmd
-play intel SPMD compiler in DL work
+# SPMD implementation on im2col
+Play intel SPMD compiler in DL work :)

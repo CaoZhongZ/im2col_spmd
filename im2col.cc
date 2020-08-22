@@ -7,8 +7,13 @@ extern "C" {
 void copy_from_2d_array_simd(float *dst, int d_height, int d_width,
                              const float *src, int s_height, int s_width,
                              int h_off, int w_off);
-extern void copy_from_2d_array_simd_8(float *dst, int d_height, int d_width,
-
+void copy_from_2d_array_simd_1(float *dst, int d_height, int d_width,
+                             const float *src, int s_height, int s_width,
+                             int h_off, int w_off);
+void copy_from_2d_array_simd_8(float *dst, int d_height, int d_width,
+                               const float *src, int s_height,
+                               int s_width, int h_off, int w_off);
+void copy_from_2d_array_simd_16(float *dst, int d_height, int d_width,
                                       const float *src, int s_height,
                                       int s_width, int h_off, int w_off);
 }
@@ -88,7 +93,7 @@ void im2col_simd_unroll(const float *im, float *col, int h, int w, int c,
   auto ow = w + 2 * wp - kw + 1;
 
   // for every image
-  for (int ic = 0; ic < c / 8; ++ic) {
+  for (int ic = 0; ic < c / 16; ++ic) {
     auto *im_c = im + ic * (h * w);
 
     for (int k1 = 0; k1 < kh; ++k1) {
@@ -98,7 +103,7 @@ void im2col_simd_unroll(const float *im, float *col, int h, int w, int c,
         auto h_off = 0 - hp + k1;
         auto w_off = 0 - wp + k0;
 
-        copy_from_2d_array_simd_8(col_c, oh, ow, im_c, h, w, h_off, w_off);
+        copy_from_2d_array_simd_16(col_c, oh, ow, im_c, h, w, h_off, w_off);
       }
     }
   }
