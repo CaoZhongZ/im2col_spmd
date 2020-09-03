@@ -3,7 +3,7 @@ ISPC_FLAGS=--pic -O2
 ISPC_ARCH_FLAGS=--cpu=broadwell --target=avx2-i32x8
 ISPC_DEBUG=-g
 ARCH_FLAGS=-march=native -mtune=native
-CXXFLAGS=-std=c++11 -O2 $(ARCH_FLAGS)
+CXXFLAGS=-std=c++11 -O0 -g $(ARCH_FLAGS)
 
 %.o:%.ispc
 	$(ISPC) $(ISPC_FLAGS) $(ISPC_ARCH_FLAGS) $(ISPC_DEBUG) -o $@ $^
@@ -25,7 +25,7 @@ CXXFLAGS=-std=c++11 -O2 $(ARCH_FLAGS)
 
 all: main
 
-main: im2col.o im2col_simd.o main.o
+main: im2col_onednn.o copy_1d_simd.o
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@
 
 clean:

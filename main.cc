@@ -19,8 +19,9 @@ template <typename dtype> struct params {
   }
 
   size_t i_size() const { return i_nelem() * sizeof(dtype); }
-
   size_t o_size() const { return o_nelem() * sizeof(dtype); }
+  size_t oh() const { return h + 2 * hp - 3 + 1; }
+  size_t ow() const { return w + 2 * wp - 3 + 1; }
 };
 
 static params<float> shapes[] = {
@@ -43,6 +44,9 @@ void seq_float(float *f, size_t nelem) {
   for (size_t i = 0; i < nelem; ++i) {
     f[i] = (float)i;
   }
+}
+
+void show_3d(float *a, int oh, int ow) {
 }
 
 bool exact(float *a, float *b, size_t nelem) {
@@ -69,7 +73,7 @@ void bench_im2col(const params<float> *shape, int times) {
             << " o:" << (double)shape->o_size() / 1024 << "K" << std::endl;
 
   im2col(t_in, t_out, shape->h, shape->w, shape->c, 3, 3, shape->hp, shape->wp);
-  im2col_simd(t_in, t_cmp, shape->h, shape->w, shape->c, 3, 3, shape->hp,
+  im2col_simd_unroll(t_in, t_cmp, shape->h, shape->w, shape->c, 3, 3, shape->hp,
               shape->wp);
 
   if (!exact(t_out, t_cmp, shape->o_nelem()))
